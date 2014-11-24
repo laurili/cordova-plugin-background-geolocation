@@ -23,8 +23,8 @@ public class BackgroundGpsPlugin extends CordovaPlugin {
 
     private Boolean isEnabled = false;
 
-    private String dbname;
-    private String routeid;
+    private String dbname = "cordova_bg_locations";
+    private String routeid = "1";
     private String stationaryRadius = "30";
     private String desiredAccuracy = "100";
     private String distanceFilter = "30";
@@ -83,7 +83,7 @@ public class BackgroundGpsPlugin extends CordovaPlugin {
                 this.activityType = data.getString(9);
                 this.stopOnTerminate = data.getString(10);
             } catch (JSONException e) {
-                callbackContext.error("authToken/url required as parameters: " + e.getMessage());
+                callbackContext.error("dbname and routeid required as parameters: " + e.getMessage());
             }
         } else if (ACTION_SET_CONFIG.equalsIgnoreCase(action)) {
             result = true;

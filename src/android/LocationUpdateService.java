@@ -70,7 +70,7 @@ public class LocationUpdateService extends Service implements LocationListener {
     private Location lastLocation;
     private long lastUpdateTime = 0l;
 
-    private String dbname = 'cordova_bg_locations';
+    private String dbname = "cordova_bg_locations";
     private Integer routeid = 1;
 
     private float stationaryRadius;
