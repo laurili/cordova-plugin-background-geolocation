@@ -11,9 +11,8 @@ module.exports = {
 
     configure: function(success, failure, config) {
         this.config = config;
-        var params              = JSON.stringify(config.params || {}),
-            headers		        = JSON.stringify(config.headers || {}),
-            url                 = config.url        || 'BackgroundGeoLocation_url',
+        var dbname		        = config.dbname || 'cordova_bg_locations'), // SQLite database name
+            routeid             = config.routeid || 1, 						// routeid, integer to group locations
             stationaryRadius    = (config.stationaryRadius >= 0) ? config.stationaryRadius : 50,    // meters
             distanceFilter      = (config.distanceFilter >= 0) ? config.distanceFilter : 500,       // meters
             locationTimeout     = (config.locationTimeout >= 0) ? config.locationTimeout : 60,      // seconds
@@ -28,7 +27,7 @@ module.exports = {
              failure || function() {},
              'BackgroundGeoLocation',
              'configure',
-             [params, headers, url, stationaryRadius, distanceFilter, locationTimeout, desiredAccuracy, debug, notificationTitle, notificationText, activityType, stopOnTerminate]
+             [dbname, routeid, stationaryRadius, distanceFilter, locationTimeout, desiredAccuracy, debug, notificationTitle, notificationText, activityType, stopOnTerminate]
         );
     },
     start: function(success, failure, config) {

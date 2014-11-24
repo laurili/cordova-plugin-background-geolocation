@@ -23,9 +23,8 @@ public class BackgroundGpsPlugin extends CordovaPlugin {
 
     private Boolean isEnabled = false;
 
-    private String url;
-    private String params;
-    private String headers;
+    private String dbname;
+    private String routeid;
     private String stationaryRadius = "30";
     private String desiredAccuracy = "100";
     private String distanceFilter = "30";
@@ -42,13 +41,12 @@ public class BackgroundGpsPlugin extends CordovaPlugin {
 
         if (ACTION_START.equalsIgnoreCase(action) && !isEnabled) {
             result = true;
-            if (params == null || headers == null || url == null) {
+            if (routeid == null || dbname == null) {
                 callbackContext.error("Call configure before calling start");
             } else {
                 callbackContext.success();
-                updateServiceIntent.putExtra("url", url);
-                updateServiceIntent.putExtra("params", params);
-                updateServiceIntent.putExtra("headers", headers);
+                updateServiceIntent.putExtra("dbname", dbname);
+                updateServiceIntent.putExtra("routeid", routeid);
                 updateServiceIntent.putExtra("stationaryRadius", stationaryRadius);
                 updateServiceIntent.putExtra("desiredAccuracy", desiredAccuracy);
                 updateServiceIntent.putExtra("distanceFilter", distanceFilter);
@@ -71,19 +69,19 @@ public class BackgroundGpsPlugin extends CordovaPlugin {
             result = true;
             try {
                 // Params.
-                //    0       1       2           3               4                5               6            7           8                9               10              11
-                //[params, headers, url, stationaryRadius, distanceFilter, locationTimeout, desiredAccuracy, debug, notificationTitle, notificationText, activityType, stopOnTerminate]
-                this.params = data.getString(0);
-                this.headers = data.getString(1);
-                this.url = data.getString(2);
-                this.stationaryRadius = data.getString(3);
-                this.distanceFilter = data.getString(4);
-                this.locationTimeout = data.getString(5);
-                this.desiredAccuracy = data.getString(6);
-                this.isDebugging = data.getString(7);
-                this.notificationTitle = data.getString(8);
-                this.notificationText = data.getString(9);
-                this.stopOnTerminate = data.getString(11);
+                //    0       1       2           		3               4                5               6            7           8                9               10             
+                //[dbname, routeid, stationaryRadius, distanceFilter, locationTimeout, desiredAccuracy, debug, notificationTitle, notificationText, activityType, stopOnTerminate]
+                this.dbname = data.getString(0);
+                this.routeid = data.getString(1);
+                this.stationaryRadius = data.getString(2);
+                this.distanceFilter = data.getString(3);
+                this.locationTimeout = data.getString(4);
+                this.desiredAccuracy = data.getString(5);
+                this.isDebugging = data.getString(6);
+                this.notificationTitle = data.getString(7);
+                this.notificationText = data.getString(8);
+                this.activityType = data.getString(9);
+                this.stopOnTerminate = data.getString(10);
             } catch (JSONException e) {
                 callbackContext.error("authToken/url required as parameters: " + e.getMessage());
             }

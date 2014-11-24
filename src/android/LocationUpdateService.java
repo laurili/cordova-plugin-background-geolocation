@@ -70,9 +70,8 @@ public class LocationUpdateService extends Service implements LocationListener {
     private Location lastLocation;
     private long lastUpdateTime = 0l;
 
-    private JSONObject params;
-    private JSONObject headers;
-    private String url = "http://192.168.2.15:3000/users/current_location.json";
+    private String dbname = 'cordova_bg_locations';
+    private Integer routeid = 1;
 
     private float stationaryRadius;
     private Location stationaryLocation;
@@ -163,15 +162,9 @@ public class LocationUpdateService extends Service implements LocationListener {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "Received start id " + startId + ": " + intent);
-        if (intent != null) {
-            try {
-                params = new JSONObject(intent.getStringExtra("params"));
-                headers = new JSONObject(intent.getStringExtra("headers"));
-            } catch (JSONException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            url = intent.getStringExtra("url");
+        if (intent != null) {            
+            dbname = intent.getStringExtra("dbname");
+            routeid = Integer.parseInt(intent.getStringExtra("routeid"));
             stationaryRadius = Float.parseFloat(intent.getStringExtra("stationaryRadius"));
             distanceFilter = Integer.parseInt(intent.getStringExtra("distanceFilter"));
             scaledDistanceFilter = distanceFilter;
@@ -200,9 +193,8 @@ public class LocationUpdateService extends Service implements LocationListener {
             notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_FOREGROUND_SERVICE | Notification.FLAG_NO_CLEAR;
             startForeground(startId, notification);
         }
-        Log.i(TAG, "- url: " + url);
-        Log.i(TAG, "- params: " + params.toString());
-        Log.i(TAG, "- headers: " + headers.toString());
+        Log.i(TAG, "- dbname: " + dbname);
+        Log.i(TAG, "- routeid: " + routeid);
         Log.i(TAG, "- stationaryRadius: "   + stationaryRadius);
         Log.i(TAG, "- distanceFilter: "     + distanceFilter);
         Log.i(TAG, "- desiredAccuracy: "    + desiredAccuracy);
@@ -410,16 +402,9 @@ public class LocationUpdateService extends Service implements LocationListener {
         } else if (stationaryLocation != null) {
             return;
         }
-        // Go ahead and cache, push to server
+        // Go ahead and store location
         lastLocation = location;
         persistLocation(location);
-
-        if (this.isNetworkConnected()) {
-            Log.d(TAG, "Scheduling location network post");
-            schedulePostLocations();
-        } else {
-            Log.d(TAG, "Network unavailable, waiting for now");
-        }
     }
 
     /**
@@ -640,6 +625,7 @@ public class LocationUpdateService extends Service implements LocationListener {
         // TODO Auto-generated method stub
         Log.d(TAG, "- onStatusChanged: " + provider + ", status: " + status);
     }
+    
     private void schedulePostLocations() {
         PostLocationTask task = new LocationUpdateService.PostLocationTask();
         Log.d(TAG, "beforeexecute " +  task.getStatus());
@@ -651,75 +637,14 @@ public class LocationUpdateService extends Service implements LocationListener {
         Log.d(TAG, "afterexecute " +  task.getStatus());
     }
 
-    private boolean postLocation(com.tenforwardconsulting.cordova.bgloc.data.Location l, LocationDAO dao) {
-        if (l == null) {
-            Log.w(TAG, "postLocation: null location");
-            return false;
-        }
-        try {
-            lastUpdateTime = SystemClock.elapsedRealtime();
-            Log.i(TAG, "Posting  native location update: " + l);
-            DefaultHttpClient httpClient = new DefaultHttpClient();
-            HttpPost request = new HttpPost(url);
-
-            JSONObject location = new JSONObject();
-            location.put("latitude", l.getLatitude());
-            location.put("longitude", l.getLongitude());
-            location.put("accuracy", l.getAccuracy());
-            location.put("speed", l.getSpeed());
-            location.put("bearing", l.getBearing());
-            location.put("altitude", l.getAltitude());
-            location.put("recorded_at", dao.dateToString(l.getRecordedAt()));
-            params.put("location", location);
-
-            Log.i(TAG, "location: " + location.toString());
-
-            StringEntity se = new StringEntity(params.toString());
-            request.setEntity(se);
-            request.setHeader("Accept", "application/json");
-            request.setHeader("Content-type", "application/json");
-
-            Iterator<String> headkeys = headers.keys();
-            while( headkeys.hasNext() ){
-        String headkey = headkeys.next();
-        if(headkey != null) {
-                    Log.d(TAG, "Adding Header: " + headkey + " : " + (String)headers.getString(headkey));
-                    request.setHeader(headkey, (String)headers.getString(headkey));
-        }
-            }
-            Log.d(TAG, "Posting to " + request.getURI().toString());
-            HttpResponse response = httpClient.execute(request);
-            Log.i(TAG, "Response received: " + response.getStatusLine());
-            if (response.getStatusLine().getStatusCode() == 200) {
-                return true;
-            } else {
-                return false;
-            }
-        } catch (Throwable e) {
-            Log.w(TAG, "Exception posting location: " + e);
-            e.printStackTrace();
-            return false;
-        }
-    }
     private void persistLocation(Location location) {
         LocationDAO dao = DAOFactory.createLocationDAO(this.getApplicationContext());
         com.tenforwardconsulting.cordova.bgloc.data.Location savedLocation = com.tenforwardconsulting.cordova.bgloc.data.Location.fromAndroidLocation(location);
 
-        if (dao.persistLocation(savedLocation)) {
-            Log.d(TAG, "Persisted Location: " + savedLocation);
+        if (dao.persistLocation(savedLocation,dbname,routeid)) {
+            Log.d(TAG, "Persisted Location: " + savedLocation + ", routeid: " + routeid + " database: ");
         } else {
             Log.w(TAG, "Failed to persist location");
-        }
-    }
-
-    private boolean isNetworkConnected() {
-        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        if (networkInfo != null) {
-            Log.d(TAG, "Network found, type = " + networkInfo.getTypeName());
-            return networkInfo.isConnected();
-        } else {
-            Log.d(TAG, "No active network info");
-            return false;
         }
     }
 
@@ -758,6 +683,7 @@ public class LocationUpdateService extends Service implements LocationListener {
         super.onTaskRemoved(rootIntent);
     }
 
+    // useless
     private class PostLocationTask extends AsyncTask<Object, Integer, Boolean> {
 
         @Override

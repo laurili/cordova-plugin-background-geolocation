@@ -7,11 +7,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 public class LocationOpenHelper extends SQLiteOpenHelper {
-    private static final String SQLITE_DATABASE_NAME = "cordova_bg_locations";
     private static final int DATABASE_VERSION = 1;
-    public static final String LOCATION_TABLE_NAME = "location";
+    public static final String LOCATION_TABLE_NAME = "locations";
     private static final String LOCATION_TABLE_COLUMNS = 
         " id INTEGER PRIMARY KEY AUTOINCREMENT," +
+        " routeid INTEGER," +
         " recordedAt TEXT," +
         " accuracy TEXT," +
         " speed TEXT," +
@@ -24,8 +24,8 @@ public class LocationOpenHelper extends SQLiteOpenHelper {
         LOCATION_TABLE_COLUMNS +
         ");";
 
-    LocationOpenHelper(Context context) {
-        super(context, SQLITE_DATABASE_NAME, null, DATABASE_VERSION);
+    LocationOpenHelper(Context context, String dbname) {
+        super(context, dbname, null, DATABASE_VERSION);
     }    
 
     @Override

@@ -20,7 +20,7 @@ The plugin creates the object `window.plugins.backgroundGeoLocation` with the me
 
 ```
 
-   cordova plugin add https://github.com/christocracy/cordova-plugin-background-geolocation.git
+   cordova plugin add https://github.com/laurili/cordova-plugin-background-geolocation.git
 ```
 
 A full example could be:
@@ -69,14 +69,8 @@ A full example could be:
 
     // BackgroundGeoLocation is highly configurable.
     bgGeo.configure(callbackFn, failureFn, {
-        url: 'http://only.for.android.com/update_location.json', // <-- Android ONLY:  your server url to send locations to
-        params: {
-            auth_token: 'user_secret_auth_token',    //  <-- Android ONLY:  HTTP POST params sent to your server when persisting locations.
-            foo: 'bar'                              //  <-- Android ONLY:  HTTP POST params sent to your server when persisting locations.
-        },
-        headers: {                                   // <-- Android ONLY:  Optional HTTP headers sent to your configured #url when persisting locations
-            "X-Foo": "BAR"
-        },
+        dbname: 'http://only.for.android.com/update_location.json', // <-- Android ONLY:  SQLite db name
+        routeid: 1,                                	 				// <-- Android ONLY:  routeid for location grouping
         desiredAccuracy: 10,
         stationaryRadius: 20,
         distanceFilter: 30,
@@ -188,17 +182,17 @@ Enable this in order to force a stop() when the application terminated (e.g. on 
 
 ### Android Config
 
-#####`@param {String} url`
+#####`@param {String} dbname`
 
-The url which the Android plugin will persist background geolocation to
+Database (SQLite) name where locations will be saved
 
 #####`@param {Object} params`
 
-Optional HTTP params POSTed to your server when persisting locations (eg:  auth_token)
+Not in use
 
-#####`@param {Object} headers`
+#####`@param {Object} routeid`
 
-Optional HTTP headers POSTed to your server when persisting locations
+Routeid, integer to group saved locations
 
 #####`@param {String} notificationText/Title`
 
