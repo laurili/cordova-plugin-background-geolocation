@@ -626,17 +626,6 @@ public class LocationUpdateService extends Service implements LocationListener {
         Log.d(TAG, "- onStatusChanged: " + provider + ", status: " + status);
     }
     
-    private void schedulePostLocations() {
-        PostLocationTask task = new LocationUpdateService.PostLocationTask();
-        Log.d(TAG, "beforeexecute " +  task.getStatus());
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-            task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        else
-            task.execute();
-        Log.d(TAG, "afterexecute " +  task.getStatus());
-    }
-
     private void persistLocation(Location location) {
         LocationDAO dao = DAOFactory.createLocationDAO(this.getApplicationContext());
         com.tenforwardconsulting.cordova.bgloc.data.Location savedLocation = com.tenforwardconsulting.cordova.bgloc.data.Location.fromAndroidLocation(location);
@@ -681,26 +670,5 @@ public class LocationUpdateService extends Service implements LocationListener {
     public void onTaskRemoved(Intent rootIntent) {
         this.stopSelf();
         super.onTaskRemoved(rootIntent);
-    }
-
-    // useless
-    private class PostLocationTask extends AsyncTask<Object, Integer, Boolean> {
-
-        @Override
-        protected Boolean doInBackground(Object...objects) {
-            Log.d(TAG, "Executing PostLocationTask#doInBackground");
-            LocationDAO locationDAO = DAOFactory.createLocationDAO(LocationUpdateService.this.getApplicationContext());
-            for (com.tenforwardconsulting.cordova.bgloc.data.Location savedLocation : locationDAO.getAllLocations()) {
-                Log.d(TAG, "Posting saved location");
-                if (postLocation(savedLocation, locationDAO)) {
-                    locationDAO.deleteLocation(savedLocation);
-                }
-            }
-            return true;
-        }
-        @Override
-        protected void onPostExecute(Boolean result) {
-            Log.d(TAG, "PostLocationTask#onPostExecture");
-        }
     }
 }
