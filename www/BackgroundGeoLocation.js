@@ -11,7 +11,7 @@ module.exports = {
 
     configure: function(success, failure, config) {
         this.config = config;
-        var dbname		        = config.dbname || 'cordova_bg_locations'), // SQLite database name
+        var dbname		        = config.dbname || "cordova_bg_locations", // SQLite database name
             routeid             = config.routeid || 1, 						// routeid, integer to group locations
             stationaryRadius    = (config.stationaryRadius >= 0) ? config.stationaryRadius : 50,    // meters
             distanceFilter      = (config.distanceFilter >= 0) ? config.distanceFilter : 500,       // meters
