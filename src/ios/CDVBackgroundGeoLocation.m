@@ -23,8 +23,8 @@
     BOOL isUpdatingLocation;
     BOOL stopOnTerminate;
 
-    NSString *token;
-    NSString *url;
+    NSString *routeid;
+    NSString *dbname;
     UIBackgroundTaskIdentifier bgTask;
     NSDate *lastBgTaskAt;
 
@@ -92,30 +92,30 @@
 }
 /**
  * configure plugin
- * @param {String} token
- * @param {String} url
+ * @param {String} dbname
+ * @param {String} routeid
  * @param {Number} stationaryRadius
  * @param {Number} distanceFilter
  * @param {Number} locationTimeout
  */
 - (void) configure:(CDVInvokedUrlCommand*)command
 {
-    // in iOS, we call to javascript for HTTP now so token and url should be @deprecated until Android calls out to javascript.
-    // Params.
-    //    0       1       2           3               4                5               6            7           8                9               10               11
-    //[params, headers, url, stationaryRadius, distanceFilter, locationTimeout, desiredAccuracy, debug, notificationTitle, notificationText, activityType, stopOnTerminate]
+    // in iOS, we call to javascript for HTTP now so dbname and routeid should be @deprecated until Android calls out to javascript.
+    //    0       1       2           		3               4                5               6            7           8                9               10
+    //[dbname, routeid, stationaryRadius, distanceFilter, locationTimeout, desiredAccuracy, debug, notificationTitle, notificationText, activityType, stopOnTerminate]
 
     // UNUSED ANDROID VARS
-    //params = [command.arguments objectAtIndex: 0];
-    //headers = [command.arguments objectAtIndex: 1];
-    //url = [command.arguments objectAtIndex: 2];
-    stationaryRadius    = [[command.arguments objectAtIndex: 3] intValue];
-    distanceFilter      = [[command.arguments objectAtIndex: 4] intValue];
-    locationTimeout     = [[command.arguments objectAtIndex: 5] intValue];
-    desiredAccuracy     = [self decodeDesiredAccuracy:[[command.arguments objectAtIndex: 6] intValue]];
-    isDebugging         = [[command.arguments objectAtIndex: 7] boolValue];
-    activityType        = [self decodeActivityType:[command.arguments objectAtIndex:10]];
-    stopOnTerminate     = [[command.arguments objectAtIndex: 11] boolValue];
+    //dbname 			= [command.arguments objectAtIndex: 0];
+    //routeid 			= [command.arguments objectAtIndex: 1];
+    stationaryRadius    = [[command.arguments objectAtIndex: 2] intValue];
+    distanceFilter      = [[command.arguments objectAtIndex: 3] intValue];
+    locationTimeout     = [[command.arguments objectAtIndex: 4] intValue];
+    desiredAccuracy     = [self decodeDesiredAccuracy:[[command.arguments objectAtIndex: 5] intValue]];
+    isDebugging         = [[command.arguments objectAtIndex: 6] boolValue];
+    //notificationTitle = [command.arguments objectAtIndex: 7];
+    //notificationText	= [command.arguments objectAtIndex: 8];
+    activityType        = [self decodeActivityType:[command.arguments objectAtIndex:9]];
+    stopOnTerminate     = [[command.arguments objectAtIndex: 10] boolValue];
 
     self.syncCallbackId = command.callbackId;
 
@@ -125,8 +125,8 @@
     locationManager.desiredAccuracy = desiredAccuracy;
     
     NSLog(@"CDVBackgroundGeoLocation configure");
-    NSLog(@"  - token: %@", token);
-    NSLog(@"  - url: %@", url);
+    // NSLog(@"  - routeid: %@", routeid);
+    // NSLog(@"  - dbname: %@", dbname);
     NSLog(@"  - distanceFilter: %ld", (long)distanceFilter);
     NSLog(@"  - stationaryRadius: %ld", (long)stationaryRadius);
     NSLog(@"  - locationTimeout: %ld", (long)locationTimeout);
