@@ -3,8 +3,7 @@ package com.tenforwardconsulting.cordova.bgloc.data;
 import java.util.Date;
 
 public interface LocationDAO {
-    public Location[] getAllLocations();
-    public boolean persistLocation(Location l);
+    public boolean persistLocation(Location l, String s, Integer i);
     public void deleteLocation(Location l);
     public String dateToString(Date date);
 }

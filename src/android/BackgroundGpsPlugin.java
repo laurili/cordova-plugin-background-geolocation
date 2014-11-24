@@ -32,6 +32,7 @@ public class BackgroundGpsPlugin extends CordovaPlugin {
     private String isDebugging = "false";
     private String notificationTitle = "Background tracking";
     private String notificationText = "ENABLED";
+    private String activityType = "OTHER";
     private String stopOnTerminate = "false";
 
     public boolean execute(String action, JSONArray data, CallbackContext callbackContext) {
@@ -55,6 +56,7 @@ public class BackgroundGpsPlugin extends CordovaPlugin {
                 updateServiceIntent.putExtra("isDebugging", isDebugging);
                 updateServiceIntent.putExtra("notificationTitle", notificationTitle);
                 updateServiceIntent.putExtra("notificationText", notificationText);
+                updateServiceIntent.putExtra("activityType", activityType);
                 updateServiceIntent.putExtra("stopOnTerminate", stopOnTerminate);
 
                 activity.startService(updateServiceIntent);

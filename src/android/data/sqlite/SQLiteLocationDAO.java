@@ -25,27 +25,6 @@ public class SQLiteLocationDAO implements LocationDAO {
 		this.context = context;
 	}
 	
-	public Location[] getAllLocations() {
-		SQLiteDatabase db = null;
-		Cursor c = null;
-		List<Location> all = new ArrayList<Location>();
-		try {
-			db = new LocationOpenHelper(context).getReadableDatabase();
-			c = db.query(LocationOpenHelper.LOCATION_TABLE_NAME, null, null, null, null, null, null);
-			while (c.moveToNext()) {
-				all.add(hydrate(c));
-			}
-		} finally {
-			if (c != null) {
-				c.close();
-			}
-			if (db != null) {
-				db.close();
-			}
-		}
-		return all.toArray(new Location[all.size()]);
-	}
-
 	public boolean persistLocation(Location location, String dbname, Integer routeid) {
 		SQLiteDatabase db = new LocationOpenHelper(context,dbname).getWritableDatabase();
 		db.beginTransaction();
