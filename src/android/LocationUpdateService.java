@@ -631,7 +631,7 @@ public class LocationUpdateService extends Service implements LocationListener {
         com.tenforwardconsulting.cordova.bgloc.data.Location savedLocation = com.tenforwardconsulting.cordova.bgloc.data.Location.fromAndroidLocation(location);
 
         if (dao.persistLocation(savedLocation,dbname,routeid)) {
-            Log.d(TAG, "Persisted Location: " + savedLocation + ", routeid: " + routeid + " database: ");
+            Log.d(TAG, "Persisted Location: " + savedLocation + ", routeid: " + routeid + " database: " + dbname);
         } else {
             Log.w(TAG, "Failed to persist location");
         }
