@@ -81,6 +81,7 @@ public class LocationUpdateService extends Service implements LocationListener {
     private PendingIntent stationaryRegionPI;
     private PendingIntent singleUpdatePI;
 
+    private Boolean isRunning = false;
     private Boolean isMoving = false;
     private Boolean isAcquiringStationaryLocation = false;
     private Boolean isAcquiringSpeed = false;
@@ -204,7 +205,7 @@ public class LocationUpdateService extends Service implements LocationListener {
         Log.i(TAG, "- notificationText: "   + notificationText);
 
         this.setPace(false);
-
+        isRunning = true;
         //We want this service to continue running until it is explicitly stopped
         return START_REDELIVER_INTENT;
     }
@@ -227,6 +228,7 @@ public class LocationUpdateService extends Service implements LocationListener {
         if (isDebugging) {
             Toast.makeText(this, "Background location tracking stopped", Toast.LENGTH_SHORT).show();
         }
+        isRunning = false;
         return super.stopService(intent);
     }
 
@@ -670,5 +672,10 @@ public class LocationUpdateService extends Service implements LocationListener {
     public void onTaskRemoved(Intent rootIntent) {
         this.stopSelf();
         super.onTaskRemoved(rootIntent);
+    }
+    
+    public boolean isRunning()
+    {
+    	return isRunning;
     }
 }
