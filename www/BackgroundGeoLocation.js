@@ -44,6 +44,13 @@ module.exports = {
             'stop',
             []);
     },
+    isEnabled: function(success) {
+    	exec(success || function() {},
+    		function() {},
+    		'BackgroundGeoLocation',
+    		'isEnabled',
+    		[]);
+    },
     finish: function(success, failure) {
         exec(success || function() {},
             failure || function() {},
