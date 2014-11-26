@@ -63,14 +63,19 @@ public class BackgroundGpsPlugin extends CordovaPlugin {
                 activity.startService(updateServiceIntent);
                 isEnabled = true;
             }
+            return true;
         } else if (ACTION_STOP.equalsIgnoreCase(action)) {
             isEnabled = false;
             result = true;
             activity.stopService(updateServiceIntent);
             callbackContext.success();
+            return true;
         } else if (ACTION_ISENABLED.equalsIgnoreCase(action)) {
        		Integer ret = isEnabled == true ? 1 : 0;
-        	callbackContext.success(ret);
+       		PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, ret);
+       		pluginResult.setKeepCallback(true);
+        	callbackContext.sendPluginResult(pluginResult);
+        	return true;
         } else if (ACTION_CONFIGURE.equalsIgnoreCase(action)) {
             result = true;
             try {
@@ -91,13 +96,17 @@ public class BackgroundGpsPlugin extends CordovaPlugin {
             } catch (JSONException e) {
                 callbackContext.error("dbname and routeid required as parameters: " + e.getMessage());
             }
+            return true;
         } else if (ACTION_SET_CONFIG.equalsIgnoreCase(action)) {
             result = true;
             // TODO reconfigure Service
-            callbackContext.success();
+            PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, "Config set");
+       		pluginResult.setKeepCallback(true);
+        	callbackContext.sendPluginResult(pluginResult);
+        	return true;
         }
 
-        return result;
+        return false;
     }
 
     /**
