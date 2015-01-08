@@ -24,6 +24,7 @@
 - (void) onSuspend:(NSNotification *)notification;
 - (void) onResume:(NSNotification *)notification;
 - (void) onAppTerminate;
+- (void) getServiceStatus:(CDVInvokedUrlCommand*)command;
 
 @end
 

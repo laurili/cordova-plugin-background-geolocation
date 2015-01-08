@@ -11,7 +11,7 @@ public class LocationOpenHelper extends SQLiteOpenHelper {
     public static final String LOCATION_TABLE_NAME = "locations";
     private static final String LOCATION_TABLE_COLUMNS = 
         " id INTEGER PRIMARY KEY AUTOINCREMENT," +
-        " routeid INTEGER," +
+        " groupid INTEGER," +
         " recordedAt TEXT," +
         " accuracy TEXT," +
         " speed TEXT," +
@@ -20,7 +20,7 @@ public class LocationOpenHelper extends SQLiteOpenHelper {
         " latitude TEXT," +
         " longitude TEXT";
     private static final String LOCATION_TABLE_CREATE =
-        "CREATE TABLE " + LOCATION_TABLE_NAME + " (" +
+        "CREATE TABLE IF NOT EXISTS " + LOCATION_TABLE_NAME + " (" +
         LOCATION_TABLE_COLUMNS +
         ");";
 

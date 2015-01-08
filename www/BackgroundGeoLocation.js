@@ -12,11 +12,11 @@ module.exports = {
     configure: function(success, failure, config) {
         this.config = config;
         var dbname		        = config.dbname || "cordova_bg_locations", // SQLite database name
-            routeid             = config.routeid || 1, 						// routeid, integer to group locations
-            stationaryRadius    = (config.stationaryRadius >= 0) ? config.stationaryRadius : 50,    // meters
-            distanceFilter      = (config.distanceFilter >= 0) ? config.distanceFilter : 500,       // meters
-            locationTimeout     = (config.locationTimeout >= 0) ? config.locationTimeout : 60,      // seconds
-            desiredAccuracy     = (config.desiredAccuracy >= 0) ? config.desiredAccuracy : 100,     // meters
+            groupid             = config.groupid || -2, 				   // groupid, integer to group locations, must be <> -1
+            stationaryRadius    = (config.stationaryRadius >= 0) ? config.stationaryRadius : 10, // meters
+            distanceFilter      = (config.distanceFilter >= 0) ? config.distanceFilter : 5,    // meters
+            locationTimeout     = (config.locationTimeout >= 0) ? config.locationTimeout : 10,      // seconds
+            desiredAccuracy     = (config.desiredAccuracy >= 0) ? config.desiredAccuracy : 5,    // meters
             debug               = config.debug || false,
             notificationTitle   = config.notificationTitle || "Background tracking",
             notificationText    = config.notificationText || "ENABLED";
@@ -27,10 +27,24 @@ module.exports = {
              failure || function() {},
              'BackgroundGeoLocation',
              'configure',
-             [dbname, routeid, stationaryRadius, distanceFilter, locationTimeout, desiredAccuracy, debug, notificationTitle, notificationText, activityType, stopOnTerminate]
+             [dbname, groupid, stationaryRadius, distanceFilter, locationTimeout, desiredAccuracy, debug, notificationTitle, notificationText, activityType, stopOnTerminate]
         );
     },
-    start: function(success, failure, config) {
+    bind: function(success) {
+    	if (device.platform == "Android") {
+    		exec(success || function() {},
+    	    	function() {},
+    	    	'BackgroundGeoLocation',
+    	    	'bind',
+    	    	[]);
+    	} else {
+   			if (success) {
+   				success();
+   			}
+    	}
+    	
+    },
+	start: function(success, failure, config) {
         exec(success || function() {},
              failure || function() {},
              'BackgroundGeoLocation',
@@ -44,11 +58,11 @@ module.exports = {
             'stop',
             []);
     },
-    isEnabled: function(success) {
+	getServiceStatus: function(success,failure) {
     	exec(success || function() {},
-    		function() {},
+    		failure || function() {},
     		'BackgroundGeoLocation',
-    		'isEnabled',
+    		'getServiceStatus',
     		[]);
     },
     finish: function(success, failure) {

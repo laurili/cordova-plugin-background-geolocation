@@ -28,6 +28,9 @@ import android.app.NotificationManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.provider.Settings;
 
 import android.content.Context;
 import android.content.Intent;
@@ -48,11 +51,14 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.os.RemoteException;
 
 import android.util.Log;
 import android.widget.Toast;
 
 import static java.lang.Math.*;
+
+import com.tenforwardconsulting.cordova.bgloc.LocationUpdateServiceApi;
 
 public class LocationUpdateService extends Service implements LocationListener {
     private static final String TAG = "LocationUpdateService";
@@ -60,8 +66,8 @@ public class LocationUpdateService extends Service implements LocationListener {
     private static final String STATIONARY_ALARM_ACTION         = "com.tenforwardconsulting.cordova.bgloc.STATIONARY_ALARM_ACTION";
     private static final String SINGLE_LOCATION_UPDATE_ACTION   = "com.tenforwardconsulting.cordova.bgloc.SINGLE_LOCATION_UPDATE_ACTION";
     private static final String STATIONARY_LOCATION_MONITOR_ACTION = "com.tenforwardconsulting.cordova.bgloc.STATIONARY_LOCATION_MONITOR_ACTION";
-    private static final long STATIONARY_TIMEOUT                                = 5 * 1000 * 60;    // 5 minutes.
-    private static final long STATIONARY_LOCATION_POLLING_INTERVAL_LAZY         = 3 * 1000 * 60;    // 3 minutes.
+    private static final long STATIONARY_TIMEOUT                                = 3* 1000 * 60;    // 3 inutes.
+    private static final long STATIONARY_LOCATION_POLLING_INTERVAL_LAZY         = 2* 1000 * 60;    // 2 inutes.
     private static final long STATIONARY_LOCATION_POLLING_INTERVAL_AGGRESSIVE   = 1 * 1000 * 60;    // 1 minute.
     private static final Integer MAX_STATIONARY_ACQUISITION_ATTEMPTS = 5;
     private static final Integer MAX_SPEED_ACQUISITION_ATTEMPTS = 3;
@@ -71,7 +77,7 @@ public class LocationUpdateService extends Service implements LocationListener {
     private long lastUpdateTime = 0l;
 
     private String dbname = "cordova_bg_locations";
-    private Integer routeid = 1;
+    private Integer groupid = -1;
 
     private float stationaryRadius;
     private Location stationaryLocation;
@@ -81,6 +87,7 @@ public class LocationUpdateService extends Service implements LocationListener {
     private PendingIntent stationaryRegionPI;
     private PendingIntent singleUpdatePI;
 
+    private Boolean isRunning = false;
     private Boolean isMoving = false;
     private Boolean isAcquiringStationaryLocation = false;
     private Boolean isAcquiringSpeed = false;
@@ -99,17 +106,16 @@ public class LocationUpdateService extends Service implements LocationListener {
 
     private Criteria criteria;
 
-    private LocationManager locationManager;
+    private LocationManager locationManager = null;
     private AlarmManager alarmManager;
     private ConnectivityManager connectivityManager;
     private NotificationManager notificationManager;
     public static TelephonyManager telephonyManager = null;
 
-    @Override
+     @Override
     public IBinder onBind(Intent intent) {
-        // TODO Auto-generated method stub
-        Log.i(TAG, "OnBind" + intent);
-        return null;
+        // Return the interface
+        return apiEndpoint;
     }
 
     @Override
@@ -164,7 +170,7 @@ public class LocationUpdateService extends Service implements LocationListener {
         Log.i(TAG, "Received start id " + startId + ": " + intent);
         if (intent != null) {            
             dbname = intent.getStringExtra("dbname");
-            routeid = Integer.parseInt(intent.getStringExtra("routeid"));
+            groupid = intent.getIntExtra("groupid",0); // if group id not provided, run with groupid=0
             stationaryRadius = Float.parseFloat(intent.getStringExtra("stationaryRadius"));
             distanceFilter = Integer.parseInt(intent.getStringExtra("distanceFilter"));
             scaledDistanceFilter = distanceFilter;
@@ -194,7 +200,7 @@ public class LocationUpdateService extends Service implements LocationListener {
             startForeground(startId, notification);
         }
         Log.i(TAG, "- dbname: " + dbname);
-        Log.i(TAG, "- routeid: " + routeid);
+        Log.i(TAG, "- groupid: " + groupid);
         Log.i(TAG, "- stationaryRadius: "   + stationaryRadius);
         Log.i(TAG, "- distanceFilter: "     + distanceFilter);
         Log.i(TAG, "- desiredAccuracy: "    + desiredAccuracy);
@@ -204,7 +210,7 @@ public class LocationUpdateService extends Service implements LocationListener {
         Log.i(TAG, "- notificationText: "   + notificationText);
 
         this.setPace(false);
-
+        isRunning = true;
         //We want this service to continue running until it is explicitly stopped
         return START_REDELIVER_INTENT;
     }
@@ -223,7 +229,8 @@ public class LocationUpdateService extends Service implements LocationListener {
     @Override
     public boolean stopService(Intent intent) {
         Log.i(TAG, "- Received stop: " + intent);
-        cleanUp();
+        isRunning = false;
+		cleanUp();
         if (isDebugging) {
             Toast.makeText(this, "Background location tracking stopped", Toast.LENGTH_SHORT).show();
         }
@@ -236,7 +243,7 @@ public class LocationUpdateService extends Service implements LocationListener {
      */
     private void setPace(Boolean value) {
         Log.i(TAG, "setPace: " + value);
-
+/*
         Boolean wasMoving   = isMoving;
         isMoving            = value;
         isAcquiringStationaryLocation = false;
@@ -271,6 +278,11 @@ public class LocationUpdateService extends Service implements LocationListener {
         } else {
             locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), locationTimeout*1000, scaledDistanceFilter, this);
         }
+*/
+		criteria.setAccuracy(Criteria.ACCURACY_FINE);
+        criteria.setHorizontalAccuracy(translateDesiredAccuracy(desiredAccuracy));
+        criteria.setPowerRequirement(Criteria.POWER_HIGH);
+		locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), locationTimeout*1000, distanceFilter, this);
     }
 
     /**
@@ -341,6 +353,7 @@ public class LocationUpdateService extends Service implements LocationListener {
     public void onLocationChanged(Location location) {
         Log.d(TAG, "- onLocationChanged: " + location.getLatitude() + "," + location.getLongitude() + ", accuracy: " + location.getAccuracy() + ", isMoving: " + isMoving + ", speed: " + location.getSpeed());
 
+		/*
         if (!isMoving && !isAcquiringStationaryLocation && stationaryLocation==null) {
             // Perhaps our GPS signal was interupted, re-acquire a stationaryLocation now.
             setPace(false);
@@ -402,8 +415,9 @@ public class LocationUpdateService extends Service implements LocationListener {
         } else if (stationaryLocation != null) {
             return;
         }
+		*/
         // Go ahead and store location
-        lastLocation = location;
+        // lastLocation = location;
         persistLocation(location);
     }
 
@@ -479,7 +493,7 @@ public class LocationUpdateService extends Service implements LocationListener {
         if (isDebugging) {
             startTone("beep");
         }
-    float distance = abs(location.distanceTo(stationaryLocation) - stationaryLocation.getAccuracy() - location.getAccuracy());
+		float distance = abs(location.distanceTo(stationaryLocation) - stationaryLocation.getAccuracy() - location.getAccuracy());
 
         if (isDebugging) {
             Toast.makeText(this, "Stationary exit in " + (stationaryRadius-distance) + "m", Toast.LENGTH_LONG).show();
@@ -630,8 +644,8 @@ public class LocationUpdateService extends Service implements LocationListener {
         LocationDAO dao = DAOFactory.createLocationDAO(this.getApplicationContext());
         com.tenforwardconsulting.cordova.bgloc.data.Location savedLocation = com.tenforwardconsulting.cordova.bgloc.data.Location.fromAndroidLocation(location);
 
-        if (dao.persistLocation(savedLocation,dbname,routeid)) {
-            Log.d(TAG, "Persisted Location: " + savedLocation + ", routeid: " + routeid + " database: " + dbname);
+        if (dao.persistLocation(savedLocation,dbname,groupid)) {
+            Log.d(TAG, "Persisted Location: " + savedLocation + ", groupid: " + groupid + " database: " + dbname);
         } else {
             Log.w(TAG, "Failed to persist location");
         }
@@ -639,7 +653,7 @@ public class LocationUpdateService extends Service implements LocationListener {
 
     @Override
     public void onDestroy() {
-        Log.w(TAG, "------------------------------------------ Destroyed Location update Service");
+        Log.d(TAG, "------------------------------------------ Destroyed Location update Service");
         cleanUp();
         super.onDestroy();
     }
@@ -658,7 +672,7 @@ public class LocationUpdateService extends Service implements LocationListener {
             try {
                 locationManager.removeProximityAlert(stationaryRegionPI);
             } catch (Throwable e) {
-                Log.w(TAG, "- Something bad happened while removing proximity-alert");
+                Log.e(TAG, "- Something bad happened while removing proximity-alert");
             }
         }
         stopForeground(true);
@@ -671,4 +685,36 @@ public class LocationUpdateService extends Service implements LocationListener {
         this.stopSelf();
         super.onTaskRemoved(rootIntent);
     }
+
+	/*	 
+	 * LocationUpdateServiceApi Interface methods
+	 */
+	private LocationUpdateServiceApi.Stub apiEndpoint = new LocationUpdateServiceApi.Stub() {
+	
+		/*
+		* return service status:
+		* -2 = GPS not enabled
+		* -1 = GPS enabled but service not running
+		* > -1 = service running, return groupid
+		*/
+		@Override
+		public int getServiceStatus() throws RemoteException {
+			Log.d(TAG, "Checking service status");
+			final Context mContext = getApplicationContext();
+			if(locationManager == null) {
+				locationManager = (LocationManager)mContext.getSystemService(Context.LOCATION_SERVICE);
+			}
+			if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+				if(isRunning) {
+					Log.i(TAG, "Service is running with groupid "+groupid);
+					return groupid;
+				} else {
+					Log.i(TAG, "Service is not running");
+					return -1;
+				}
+			}			
+			Log.i(TAG, "Service is not running and GPS is disabled");
+			return -2;
+		}
+	};
 }

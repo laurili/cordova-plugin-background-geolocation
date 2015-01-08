@@ -25,10 +25,10 @@ public class SQLiteLocationDAO implements LocationDAO {
 		this.context = context;
 	}
 	
-	public boolean persistLocation(Location location, String dbname, Integer routeid) {
+	public boolean persistLocation(Location location, String dbname, Integer groupid) {
 		SQLiteDatabase db = new LocationOpenHelper(context,dbname).getWritableDatabase();
 		db.beginTransaction();
-		ContentValues values = getContentValues(location, routeid);
+		ContentValues values = getContentValues(location, groupid);
 		long rowId = db.insert(LocationOpenHelper.LOCATION_TABLE_NAME, null, values);
 		Log.d(TAG, "After insert, rowId = " + rowId);
 		db.setTransactionSuccessful();
@@ -66,7 +66,7 @@ public class SQLiteLocationDAO implements LocationDAO {
 		return l;
 	}
 	
-	private ContentValues getContentValues(Location location, Integer routeid) {
+	private ContentValues getContentValues(Location location, Integer groupid) {
 		ContentValues values = new ContentValues();
 		values.put("latitude", location.getLatitude());
 		values.put("longitude", location.getLongitude());
@@ -75,7 +75,7 @@ public class SQLiteLocationDAO implements LocationDAO {
 		values.put("altitude", location.getAltitude());
 		values.put("bearing", location.getBearing());
 		values.put("speed", location.getSpeed());
-		values.put("routeid", routeid);
+		values.put("groupid", groupid);
 		return values;
 	}
 	

@@ -280,6 +280,29 @@
 }
 
 /**
+ * check status
+ */
+- (void) getServiceStatus:(CDVInvokedUrlCommand*)command
+{
+	NSLog(@"- CheckStatus");
+	CDVPluginResult* result = nil;
+	if (![CLLocationManager locationServicesEnabled]) {
+		NSLog(@"- Location service disabled");
+		result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:(-2)];
+	} else {
+		if (enabled) {
+			NSLog(@"- Running with id: %@", routeid);
+			result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:(routeid.intValue)];
+		} else {
+			NSLog(@"- Not running");
+			result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:(-1)];
+		}
+	}
+	
+	[self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
+
+/**
  * Change pace to moving/stopped
  * @param {Boolean} isMoving
  */
@@ -356,7 +379,7 @@
     [returnInfo setObject:[NSNumber numberWithDouble:location.speed] forKey:@"speed"];
     [returnInfo setObject:[NSNumber numberWithDouble:location.verticalAccuracy] forKey:@"altitudeAccuracy"];
     [returnInfo setObject:[NSNumber numberWithDouble:location.horizontalAccuracy] forKey:@"accuracy"];
-    [returnInfo setObject:[NSNumber numberWithDouble:location.course] forKey:@"heading"];
+    [returnInfo setObject:[NSNumber numberWithDouble:location.course] forKey:@"course"];
     [returnInfo setObject:[NSNumber numberWithDouble:location.altitude] forKey:@"altitude"];
     [returnInfo setObject:[NSNumber numberWithDouble:location.coordinate.latitude] forKey:@"latitude"];
     [returnInfo setObject:[NSNumber numberWithDouble:location.coordinate.longitude] forKey:@"longitude"];
