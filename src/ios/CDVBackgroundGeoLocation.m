@@ -106,7 +106,7 @@
 
     // UNUSED ANDROID VARS
     //dbname 			= [command.arguments objectAtIndex: 0];
-    //routeid 			= [command.arguments objectAtIndex: 1];
+    routeid 			= [command.arguments objectAtIndex: 1];
     stationaryRadius    = [[command.arguments objectAtIndex: 2] intValue];
     distanceFilter      = [[command.arguments objectAtIndex: 3] intValue];
     locationTimeout     = [[command.arguments objectAtIndex: 4] intValue];
@@ -125,7 +125,7 @@
     locationManager.desiredAccuracy = desiredAccuracy;
     
     NSLog(@"CDVBackgroundGeoLocation configure");
-    // NSLog(@"  - routeid: %@", routeid);
+    NSLog(@"  - routeid: %@", routeid);
     // NSLog(@"  - dbname: %@", dbname);
     NSLog(@"  - distanceFilter: %ld", (long)distanceFilter);
     NSLog(@"  - stationaryRadius: %ld", (long)stationaryRadius);
